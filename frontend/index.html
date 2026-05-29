@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TASKMGMT</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <span class="logo">▌TASKMGMT</span>
+      <div class="header-right">
+        <span class="header-date" id="header-date"></span>
+        <button id="theme-toggle" class="btn-icon" title="Toggle light/dark mode">◐</button>
+        <button id="notif-btn" class="btn-icon hidden" title="Enable notifications">🔔</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="all">ALL TASKS</button>
+      <button class="tab" data-tab="today">TODAY'S PLAN</button>
+      <button class="tab" data-tab="streaks">STREAKS</button>
+    </nav>
+
+    <div id="toolbar" class="toolbar"></div>
+    <main id="main" class="main"></main>
+  </div>
+
+  <!-- ── Add / Edit Task Modal ── -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="modal-title">+ NEW TASK</span>
+        <button id="modal-close" class="btn-icon">✕</button>
+      </div>
+
+      <form id="task-form">
+        <input type="hidden" id="edit-task-id" value="" />
+
+        <div class="field">
+          <label>TITLE</label>
+          <input id="f-title" type="text" placeholder="What needs doing?" required />
+        </div>
+
+        <div class="field">
+          <label>DESCRIPTION <span class="label-hint">(optional)</span></label>
+          <textarea id="f-desc" rows="2" placeholder="Notes..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>ENERGY LEVEL</label>
+            <select id="f-energy">
+              <option value="">— none —</option>
+              <option value="deep_focus">⚡ DEEP FOCUS</option>
+              <option value="medium">◈ MEDIUM</option>
+              <option value="quick_win">✓ QUICK WIN</option>
+              <option value="mindless">○ MINDLESS</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>DREAD SCORE <span class="label-hint">(1–5)</span></label>
+            <div class="dread-picker" id="dread-picker">
+              <button type="button" class="dread-btn" data-v="1">1</button>
+              <button type="button" class="dread-btn" data-v="2">2</button>
+              <button type="button" class="dread-btn" data-v="3">3</button>
+              <button type="button" class="dread-btn" data-v="4">4</button>
+              <button type="button" class="dread-btn" data-v="5">5</button>
+            </div>
+            <input type="hidden" id="f-dread" value="" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>DUE DATE <span class="label-hint">(optional)</span></label>
+            <input id="f-due" type="datetime-local" />
+          </div>
+
+          <div class="field">
+            <label>RECURRING</label>
+            <select id="f-recurrence">
+              <option value="">— one-off —</option>
+              <option value="daily">DAILY</option>
+              <option value="weekly">WEEKLY</option>
+              <option value="monthly">MONTHLY</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Reminder section -->
+        <div class="field reminder-field">
+          <label>EMAIL REMINDER</label>
+          <label class="toggle-label">
+            <input type="checkbox" id="f-reminder-enabled" />
+            <span>Send me an email reminder</span>
+          </label>
+          <div id="f-reminder-config" class="reminder-config hidden">
+            <div class="field-row" style="margin-top:8px">
+              <div class="field">
+                <label>REMIND ME</label>
+                <select id="f-reminder-minutes">
+                  <option value="15">15 min before</option>
+                  <option value="30" selected>30 min before</option>
+                  <option value="60">1 hour before</option>
+                  <option value="120">2 hours before</option>
+                  <option value="1440">1 day before</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>TO EMAIL</label>
+                <input id="f-reminder-email" type="email" placeholder="you@example.com" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel" class="btn-ghost">CANCEL</button>
+          <button type="submit" class="btn-primary" id="modal-submit">CREATE TASK</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Focus Mode Overlay ── -->
+  <div id="focus-overlay" class="focus-overlay hidden">
+    <div class="focus-panel">
+      <div class="focus-header">
+        <span class="focus-label">▌FOCUS MODE</span>
+        <button id="focus-exit" class="btn-icon">✕ EXIT</button>
+      </div>
+
+      <div class="focus-task-info" id="focus-task-info"></div>
+
+      <div class="focus-timer-wrap">
+        <div class="focus-timer" id="focus-timer">25:00</div>
+        <div class="focus-timer-label" id="focus-timer-label">WORK SESSION</div>
+      </div>
+
+      <div class="focus-controls">
+        <button id="focus-start" class="btn-primary focus-btn">▶ START</button>
+        <button id="focus-reset" class="btn-ghost focus-btn">↺ RESET</button>
+      </div>
+
+      <div class="focus-meta">
+        <span id="focus-sessions">Session 1</span>
+        <span class="muted"> · </span>
+        <span class="muted" id="focus-duration-label">25 min</span>
+        <span class="muted"> · </span>
+        <label class="focus-duration-pick muted">
+          Duration:
+          <select id="focus-duration-select">
+            <option value="25">25 min</option>
+            <option value="50">50 min</option>
+            <option value="15">15 min</option>
+            <option value="10">10 min</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="focus-footer">
+        <button id="focus-complete" class="btn-primary">✓ MARK COMPLETE</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
