@@ -419,12 +419,16 @@ function openFocus(taskId) {
   document.getElementById('focus-start').textContent = '▶ START';
   document.getElementById('focus-sessions').textContent = 'Session 1';
   document.getElementById('focus-overlay').classList.remove('hidden');
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
 }
 
 function closeFocus() {
   clearInterval(focus.interval);
   focus.running = false;
   document.getElementById('focus-overlay').classList.add('hidden');
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
 
 function resetFocusTimer(useSelect = false) {
@@ -839,6 +843,15 @@ function wire() {
       closeModal();
     }
     if (e.key === 'n' && !e.target.matches('input, textarea, select')) { openModal(); }
+  });
+
+  // If the user exits fullscreen via the browser (F11 / swipe), close the overlay too
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      document.getElementById('focus-overlay').classList.add('hidden');
+      clearInterval(focus.interval);
+      focus.running = false;
+    }
   });
 }
 
